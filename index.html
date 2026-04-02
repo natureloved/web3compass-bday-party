@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BirthdayFi — Claim Your $BDAY Airdrop</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Righteous&family=JetBrains+Mono:wght@400;700&family=Nunito:wght@400;700;800;900&family=Bungee&display=swap" rel="stylesheet">
+<style>
+:root {
+  --defi-bg: #030816;
+  --defi-card: rgba(13, 26, 46, 0.65);
+  --defi-border: rgba(26, 58, 92, 0.4);
+  --g: #00ff88;
+  --c: #00c3ff;
+  --t: #b0c4de;
+  --w: #f0f7ff;
+  --party-bg: #0a0118;
+  --gold: #FFD700;
+  --mag: #FF006E;
+  --mint: #00FFCC;
+  --ora: #FF6B35;
+  --vio: #BF00FF;
+  --lim: #BFFF00;
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--defi-bg);
+  color: var(--w);
+  overflow-x: hidden;
+  cursor: crosshair;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+.mono { font-family: 'JetBrains Mono', 'Share Tech Mono', monospace; }
+
+#matrix-canvas{position:fixed;top:0;left:0;width:100%;height:100%;opacity:.05;pointer-events:none;z-index:0;}
+#confetti-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;}
+.scanlines{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.1) 2px,rgba(0,0,0,.1) 4px);
+  pointer-events:none;z-index:2;transition:opacity .5s;
+}
+#glitch-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:300;pointer-events:none;}
+.glitch-bar{position:absolute;left:0;width:100%;background:rgba(255,68,85,.85);animation:gba .12s steps(1) infinite;}
+@keyframes gba{0%{top:10%;height:4px}25%{top:55%;height:8px}50%{top:30%;height:3px}75%{top:70%;height:6px}100%{top:20%;height:5px}}
+
+/* ─── ACT 1 ─── */
+#act1{min-height:100vh; position:relative; display:flex; flex-direction:column;}
+
+.defi-nav {
+  position: sticky; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1.2rem 2.5rem;
+  border-bottom: 1px solid var(--defi-border);
+  background: rgba(3, 8, 22, 0.85);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+.logo { display: flex; align-items: center; gap: 12px; font-family: 'Righteous', cursive; font-size: 1.3rem; color: #fff; letter-spacing: 1px; }
+.logo span { color: var(--g); }
+.logo-dot { width: 10px; height: 10px; background: var(--g); border-radius: 50%; box-shadow: 0 0 15px var(--g); animation: pulse-glow 2s infinite; }
+
+@keyframes pulse-glow {
+  0% { transform: scale(0.95); box-shadow: 0 0 5px var(--g); }
+  50% { transform: scale(1.05); box-shadow: 0 0 20px var(--g); }
+  100% { transform: scale(0.95); box-shadow: 0 0 5px var(--g); }
+}
+
+.nav-links { display: flex; gap: 32px; list-style: none; font-size: 0.85rem; font-weight: 500; color: var(--t); margin-left: auto; margin-right: 2rem; }
+.nav-links a { color: inherit; text-decoration: none; transition: color 0.3s, text-shadow 0.3s; }
+.nav-links a:hover { color: var(--w); text-shadow: 0 0 8px rgba(255,255,255,0.5); }
+
+.live-badge {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px; background: rgba(0, 255, 136, 0.08);
+  border: 1px solid rgba(0, 255, 136, 0.4); border-radius: 50px;
+  color: var(--g); font-size: 0.65rem; font-weight: 800; letter-spacing: 1.5px;
+}
+.live-badge::before { content: ''; width: 6px; height: 6px; background: var(--g); border-radius: 50%; animation: blink 1s infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.ticker-bar{position:relative;z-index:5;overflow:hidden;padding:9px 0;background:rgba(0,0,0,.3);border-bottom:1px solid rgba(0,195,255,.12);}
+.ticker-track{display:flex;gap:55px;animation:tr 25s linear infinite;width:max-content;}
+@keyframes tr{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes rise{from{transform:translateY(0)}to{transform:translateY(-110vh)}}
+@keyframes sway{0%,100%{margin-left:-20px}50%{margin-left:20px}}
+.rain-emoji{position:fixed;bottom:-50px;pointer-events:auto;z-index:1;}
+.tick{font-size:.75rem;color:var(--t);display:flex;align-items:center;gap:7px;}
+.tick .sym{color:var(--w);font-weight:700;}
+.up{color:#00ff88}.dn{color:#ff4455}
+
+.defi-hero { 
+  flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+  position: relative; z-index: 5; text-align: center; padding: 2rem 1.5rem; 
+}
+.token-name {
+  font-family: 'Righteous', cursive;
+  font-size: clamp(3rem, 10vw, 6rem); line-height: 1;
+  background: linear-gradient(135deg, #fff 0%, var(--g) 50%, var(--c) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: glow-text 5s linear infinite;
+  filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.2));
+  margin-bottom: 0.5rem;
+}
+.token-sub { 
+  font-size: 0.75rem; color: var(--t); font-weight: 500; 
+  letter-spacing: 3px; text-transform: uppercase; 
+  margin-bottom: 2rem; opacity: 0.7; 
+}
+
+
+.cta-zone { position: relative; z-index: 5; text-align: center; padding: 0 1.5rem 8rem; }
+.rug-btn {
+  position: relative; padding: 18px 45px;
+  font-family: 'Righteous', cursive; font-size: 1.1rem; letter-spacing: 1px;
+  background: linear-gradient(135deg, var(--g), var(--c));
+  color: #030816; border: none; border-radius: 15px; cursor: pointer; overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+  text-transform: uppercase;
+}
+.rug-btn::before {
+  content: ''; position: absolute; top: -50%; left: -60%; width: 220%; height: 220%;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  transform: translateX(-100%); transition: transform 0.6s;
+}
+.rug-btn:hover {
+  transform: scale(1.03) translateY(-2px);
+  box-shadow: 0 0 60px rgba(0, 255, 136, 0.5);
+}
+.rug-btn:hover::before { transform: translateX(100%); }
+.rug-btn:active { transform: scale(0.98); }
+.btn-note { display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; opacity: 0.6; margin-top: 10px; letter-spacing: 0.5px; }
+
+.tease-box {
+  max-width: 450px; margin: 3rem auto 0;
+  background: rgba(0, 195, 255, 0.03); border: 1px solid rgba(0, 195, 255, 0.15);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-radius: 16px; padding: 1.5rem 2rem;
+}
+.tease-top { display: flex; align-items: center; gap: 10px; color: var(--c); font-size: 0.8rem; font-weight: 700; margin-bottom: 12px; }
+.tease-dot { width: 8px; height: 8px; background: var(--c); border-radius: 50%; animation: pulse-glow-small 1.5s infinite; }
+@keyframes pulse-glow-small { 0% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.8); opacity: 0.5; } }
+.tease-text { font-size: 0.85rem; color: var(--t); line-height: 1.6; }
+.tease-bar { margin-top: 18px; background: rgba(0, 195, 255, 0.1); border-radius: 10px; overflow: hidden; height: 8px; }
+.tease-fill { height: 100%; width: 84%; background: linear-gradient(90deg, var(--c), var(--g)); border-radius: 10px; animation: build-up 2.5s ease-out; }
+@keyframes build-up { from { width: 0; } to { width: 84%; } }
+.tease-bar-label { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--t); margin-top: 8px; font-weight: 600; opacity: 0.8; }
+
+.emoji-rain{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:hidden;}
+
+/* ─── ACT 2 ─── */
+#act2 {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 500; background: #000;
+  justify-content: center; align-items: center; flex-direction: column; text-align: center;
+}
+.rug-title {
+  font-family: 'Righteous', cursive; font-size: clamp(3rem, 10vw, 6rem);
+  color: #ff003c; letter-spacing: 4px;
+  animation: glitch-intense 0.2s infinite;
+  text-shadow: 0 0 20px rgba(255, 0, 60, 0.8);
+}
+@keyframes glitch-intense {
+  0% { transform: translate(0); filter: hue-rotate(0deg); }
+  20% { transform: translate(-5px, 5px); filter: hue-rotate(90deg); }
+  40% { transform: translate(5px, -5px); }
+  60% { transform: translate(-5px, -5px); filter: hue-rotate(180deg); }
+  80% { transform: translate(5px, 5px); }
+  100% { transform: translate(0); }
+}
+.rug-sub { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; color: #ff003c; margin-top: 2rem; letter-spacing: 2px; text-transform: uppercase; }
+.rug-bars { width: 400px; margin: 4rem auto 0; display: flex; flex-direction: column; gap: 15px; }
+.rug-bar-row { display: flex; gap: 12px; align-items: center; }
+.rug-bar-lbl { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: rgba(255,0,60,0.6); width: 100px; text-align: right; }
+.rug-bar-track { flex: 1; background: rgba(255, 255, 255, 0.05); border-radius: 4px; height: 10px; overflow: hidden; border: 1px solid rgba(255,0,60,0.2); }
+.rug-bar-fill { height: 100%; background: #ff003c; width: 100%; transition: width 0.1s linear; }
+.rug-pct { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #ff003c; width: 45px; font-weight: 700; }
+
+/* ─── ACT 3 ─── */
+#act3 { display: none; min-height: 100vh; background: var(--party-bg); position: relative; overflow: hidden; }
+#act3::before {
+  content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(191, 0, 255, 0.15), transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(255, 0, 110, 0.15), transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(0, 255, 204, 0.05), transparent 60%);
+  pointer-events: none; z-index: 1;
+}
+.party-wrap { position: relative; z-index: 5; max-width: 900px; margin: 0 auto; padding: 6rem 1.5rem 10rem; text-align: center; }
+
+.reveal-tag {
+  display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 4px; text-transform: uppercase;
+  color: var(--mint); border: 1px solid rgba(0, 255, 204, 0.3);
+  padding: 8px 24px; border-radius: 50px; margin-bottom: 2rem;
+  background: rgba(0, 255, 204, 0.05); animation: float 3s ease-in-out infinite;
+}
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+.party-headline {
+  font-family: 'Righteous', cursive;
+  font-size: clamp(2rem, 6vw, 4rem); line-height: 1.2; margin-bottom: 2rem;
+  background: linear-gradient(135deg, var(--gold), var(--mag), var(--vio), var(--mint));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 300% auto; 
+  animation: rainbow-text 4s linear infinite, headline-pop 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  position: relative;
+}
+@keyframes rainbow-text { 0% { background-position: 0% center; } 100% { background-position: 300% center; } }
+@keyframes headline-pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.party-sub { font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: rgba(255,255,255,0.7); margin-bottom: 4rem; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+.party-sub span { color: var(--mint); font-weight: 700; }
+
+.mascot-wrap {
+  width: 280px; max-width: 80vw; margin: 0 auto 3rem;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; z-index: 10;
+  filter: drop-shadow(0 0 50px rgba(0, 255, 204, 0.3));
+  animation: mascot-float 3s ease-in-out infinite;
+}
+.mascot-img { width: 100%; height: auto; border-radius: 40px; border: 4px solid rgba(255,255,255,0.1); }
+@keyframes mascot-float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-15px) rotate(2deg); }
+}
+
+/* ── ACHIEVEMENT BADGE ── */
+#achievement-toast {
+  position: fixed; bottom: -100px; right: 2rem; z-index: 1000;
+  background: linear-gradient(135deg, var(--gold), var(--ora)); padding: 16px 24px;
+  border-radius: 16px; display: flex; align-items: center; gap: 15px;
+  box-shadow: 0 10px 40px rgba(255, 215, 0, 0.4);
+  transition: bottom 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+#achievement-toast.show { bottom: 2rem; }
+.badge-icon { font-size: 2rem; }
+.badge-text { text-align: left; }
+.badge-title { font-family: 'Righteous', cursive; font-size: 0.9rem; color: #000; text-transform: uppercase; }
+.badge-desc { font-family: 'Outfit', sans-serif; font-size: 0.75rem; color: rgba(0,0,0,0.7); font-weight: 700; }
+
+.msg-card, .sol-card {
+  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+  border-radius: 24px; padding: 3rem; margin-bottom: 3rem; text-align: left; position: relative; overflow: hidden;
+}
+.msg-card::after, .sol-card::after {
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.05) 50%, transparent 55%);
+  animation: shimmer 6s infinite linear; pointer-events: none;
+}
+@keyframes shimmer { from { transform: translate(-20%, -20%) rotate(0deg); } to { transform: translate(20%, 20%) rotate(0deg); } }
+.msg-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--vio), var(--mag)); }
+.sol-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--gold), var(--ora)); }
+
+.msg-card-title, .sol-card-title {
+  font-family: 'Righteous', cursive; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2rem; display: flex; align-items: center; gap: 15px;
+}
+.msg-card-title { color: var(--vio); }
+.sol-card-title { color: var(--gold); }
+.msg-body { font-family: 'Outfit', sans-serif; font-size: 1.1rem; line-height: 1.8; color: rgba(255,255,255,0.85); }
+.msg-body strong { color: var(--mint); font-weight: 700; }
+.msg-body em { color: var(--gold); font-style: normal; font-weight: 600; }
+
+.sol-badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 2rem; }
+.sol-badge {
+  padding: 6px 16px; border-radius: 50px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+  background: rgba(255, 215, 0, 0.08); border: 1px solid rgba(255, 215, 0, 0.3); color: var(--gold);
+}
+
+.share-btn {
+  display: inline-flex; align-items: center; gap: 10px; padding: 16px 32px;
+  font-family: 'Righteous', cursive; font-size: 1rem;
+  background: linear-gradient(135deg, var(--mag), var(--vio));
+  color: #fff; border: none; border-radius: 12px; cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 0 30px rgba(255, 0, 110, 0.3); text-decoration: none;
+}
+.share-btn:hover { transform: scale(1.05); box-shadow: 0 0 50px rgba(255, 0, 110, 0.5); }
+.click-hint { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: rgba(255,255,255,0.3); margin-top: 3rem; letter-spacing: 2px; text-transform: uppercase; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } }
+
+.footer { 
+  margin-top: 6rem; padding-bottom: 2rem;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; 
+  color: var(--t); opacity: 0.4; letter-spacing: 2px; 
+}
+
+.fw-dot{position:fixed;border-radius:50%;pointer-events:none;z-index:150;animation:fwe .7s ease-out forwards;}
+@keyframes fwe{from{transform:scale(0);opacity:1}to{transform:scale(1);opacity:0}}
+
+@media (max-width: 768px) {
+  .defi-nav { padding: 1rem 1.5rem; }
+  .logo { font-size: 1.1rem; }
+  .nav-links { display: none; }
+  .live-badge { font-size: 0.55rem; padding: 4px 10px; }
+  
+  .defi-hero { padding: 4rem 1rem 0; }
+  .token-name { font-size: 4rem; }
+  .token-sub { font-size: 0.7rem; letter-spacing: 3px; margin-bottom: 3rem; }
+  
+  .cta-zone { padding: 0 1rem 6rem; }
+  .rug-btn { padding: 20px 40px; font-size: 1rem; width: 100%; max-width: 320px; }
+  .tease-box { padding: 1.2rem 1.5rem; }
+  
+  .rug-bars { width: 90%; max-width: 340px; margin-top: 3rem; }
+  .rug-bar-lbl { width: 80px; font-size: 0.6rem; }
+  .rug-bar-track { height: 8px; }
+  
+  .party-wrap { padding: 4rem 1rem 8rem; }
+  .party-headline { font-size: 2.2rem; }
+  .party-sub { font-size: 1rem; margin-bottom: 3rem; }
+  .cake-wrap { font-size: 5rem; margin-bottom: 2.5rem; }
+  .wish-from { padding: 1rem 1.5rem; }
+  .wish-from-text { font-size: 1rem; }
+  
+  .msg-card, .sol-card { padding: 2rem 1.5rem; margin-bottom: 2rem; border-radius: 20px; }
+  .msg-card-title, .sol-card-title { font-size: 1rem; margin-bottom: 1.5rem; }
+  .msg-body { font-size: 0.95rem; }
+  .sol-badge { font-size: 0.65rem; padding: 4px 12px; }
+  
+  .share-btn { width: 100%; padding: 18px 30px; font-size: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div id="achievement-toast">
+  <div class="badge-icon">🏆</div>
+  <div class="badge-text">
+    <div class="badge-title">Legendary Founder unlocked</div>
+    <div class="badge-desc">Anniversary Badge — Web3Compass Year 1</div>
+  </div>
+</div>
+
+<canvas id="matrix-canvas"></canvas>
+<canvas id="confetti-canvas"></canvas>
+<div class="scanlines" id="scanlines"></div>
+<div id="glitch-overlay"><div class="glitch-bar"></div></div>
+<div class="emoji-rain" id="emoji-rain" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;opacity:0.3;"></div>
+
+<!-- ═══════ ACT 1 — THE DEFI TRAP ═══════ -->
+<div id="act1">
+  <nav class="defi-nav">
+    <div class="logo"><div class="logo-dot"></div>BirthdayFi</div>
+    <ul class="nav-links">
+      <li><a href="#">Pools</a></li>
+      <li><a href="#">Stake</a></li>
+      <li><a href="#">Airdrop</a></li>
+      <li><a href="#">Docs</a></li>
+      <li><a href="#">Governance</a></li>
+    </ul>
+    <span class="live-badge">⬤ MAINNET LIVE</span>
+  </nav>
+
+  <div class="defi-hero">
+    <div class="token-name">$BDAY</div>
+    <div class="token-sub">The First Birthday-Yield Protocol on Birthday Chain.<br>Launched by Web3compass</div>
+
+    <div class="cta-zone">
+      <button class="rug-btn" onclick="triggerRug()">
+        🔗 Connect Wallet and Claim $BDAY Tokens.
+        <span class="btn-note">gas optimized · zero fees · instant distribution</span>
+      </button>
+
+      <div class="tease-box">
+        <div class="tease-top"><div class="tease-dot"></div>Airdrop filling fast — 84% claimed</div>
+        <div class="tease-text">
+          <em style="color:rgba(255,255,255,.6); font-size:1.05rem;">Psst... rumour has it that something special happens when you connect 👀</em>
+        </div>
+        <div class="tease-bar"><div class="tease-fill"></div></div>
+        <div class="tease-bar-label"><span>84%</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ ACT 2 — THE RUG PULL ═══════ -->
+<div id="act2">
+  <div class="rug-title">⚠ RUG PULL DETECTED</div>
+  <div class="rug-sub" id="rug-sub">draining liquidity...</div>
+  <div class="rug-bars">
+    <div class="rug-bar-row">
+      <div class="rug-bar-lbl">TVL</div>
+      <div class="rug-bar-track"><div class="rug-bar-fill" id="rb1"></div></div>
+      <div class="rug-pct" id="rp1">100%</div>
+    </div>
+    <div class="rug-bar-row">
+      <div class="rug-bar-lbl">Liquidity</div>
+      <div class="rug-bar-track"><div class="rug-bar-fill" id="rb2"></div></div>
+      <div class="rug-pct" id="rp2">100%</div>
+    </div>
+    <div class="rug-bar-row">
+      <div class="rug-bar-lbl">Your $BDAY</div>
+      <div class="rug-bar-track"><div class="rug-bar-fill" id="rb3"></div></div>
+      <div class="rug-pct" id="rp3">100%</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ ACT 3 — BIRTHDAY CHAOS ═══════ -->
+<div id="act3">
+  <div class="party-wrap">
+    <div class="reveal-tag">✦ surprise unlocked ✦</div>
+
+    <div class="mascot-wrap">
+      <img src="mascot.png" class="mascot-img" alt="Web3Compass 1st Anniversary Mascot">
+    </div>
+
+    <div class="party-headline">You've Been Rug Pulled Into a Birthday Party</div>
+    <div class="party-sub">
+      The liquidity was a lie, but the cake is a <strong>REALITY</strong> 🎂✨<br>
+      This isn't about tokens, it's about the legend: <span>@the_web3compass</span> 🧭
+    </div>
+
+    <div class="msg-card">
+      <div class="msg-card-title">🧭 A Message From The Chain</div>
+      <div class="msg-body">
+        <strong>Happy Birthday, Web3Compass!</strong> 🎂<br><br>
+        In a space that moves at the speed of a block confirmation, you've been a steady signal
+        in the noise — a true north for builders who are still finding their footing on-chain.
+        <em>Thank you</em> for creating a community where the question "what even is a smart contract?"
+        is just as welcome as "how do I optimise gas?"<br><br>
+        The opportunities you've opened up — the challenges, the spaces, the resources freely
+        shared — have turned curious learners into confident builders. That's not just education.
+        <strong>That's alpha, given freely.</strong><br><br>
+        Here's to another year of deploying knowledge, minting futures, and staking in the people
+        who are building Web3 from the ground up. 🚀<br><br>
+        <em>May your transactions always confirm, your liquidity never drain, and your birthday
+        be worth more than any airdrop ever could be.</em> 🎁
+      </div>
+    </div>
+
+    <div class="sol-card">
+      <div class="sol-card-title">⛓️ A Heartfelt Shoutout to the Guide of the Chain</div>
+      <div class="sol-badge-row">
+        <span class="sol-badge">Day 1 → ClickCounter.sol</span>
+        <span class="sol-badge">Day 10 → ActivityTracker.sol</span>
+        <span class="sol-badge">Day 20 → FortKnox.sol</span>
+        <span class="sol-badge">Day 30 → MiniDex.sol ✅</span>
+      </div>
+      <div class="msg-body">
+        The <strong>30 Days of Solidity</strong> challenge wasn't just a learning path—it was a movement. 
+        <strong>@the_web3compass</strong>, you've turned a complex language into a shared victory 
+        for every builder involved.<br><br>
+        From the very first <em>ClickCounter.sol</em> to the final <em>MiniDex.sol ✅</em>, 
+        your guidance has been the true North Star for the community. Thank you for building 
+        not just smart contracts, but a community that builds together. 🚀
+      </div>
+    </div>
+
+    <div class="tx-confirm">
+      <div class="tx-detail">
+        <div class="tx-label">BIRTHDAY WISH CONFIRMED ON-CHAIN ✅</div>
+        <div class="tx-hash" id="tx-hash" style="font-family:'JetBrains Mono'; font-size:0.65rem; word-break:break-all; opacity:0.7;">generating full hash...</div>
+      </div>
+    </div>
+
+    <a class="share-btn" id="share-link" href="https://twitter.com/intent/tweet?text=Happy%20Birthday%20%40the_web3compass%20%F0%9F%8E%82.%20Thanks%20for%20everything%20you%20do%20for%20the%20community." target="_blank" rel="noopener" style="margin-top:4rem;">
+      Let's celebrate Web3compass on X
+    </a>
+    <div class="click-hint">✦ click anywhere for fireworks ✦</div>
+    <div class="footer">BUILT WITH CLAUDE . BY ADEJOKE . 2026</div>
+  </div>
+</div>
+
+<script>
+/* ── MATRIX BACKGROUND ── */
+(function(){
+  const c=document.getElementById('matrix-canvas'),ctx=c.getContext('2d');
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight;}
+  resize(); window.addEventListener('resize',resize);
+  const chars='01🎂🎈🎉🎁🎊';
+  let drops=[];
+  function init(){drops=Array(Math.floor(c.width/18)).fill(1);}
+  init(); window.addEventListener('resize',init);
+  function draw(){
+    ctx.fillStyle='rgba(3, 8, 22, 0.1)'; ctx.fillRect(0,0,c.width,c.height);
+    ctx.fillStyle='rgba(0, 255, 136, 0.35)'; ctx.font='14px JetBrains Mono';
+    drops.forEach((y,i)=>{
+      ctx.fillText(chars[Math.floor(Math.random()*chars.length)],i*18,y*18);
+      if(y*18>c.height&&Math.random()>.98)drops[i]=0;
+      drops[i]++;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── TX HASH ── */
+(function(){
+  const h='0123456789abcdef';
+  let s='0x';for(let i=0;i<64;i++)s+=h[Math.floor(Math.random()*16)];
+  document.getElementById('tx-hash').textContent=s;
+})();
+
+/* ── RUG PULL SEQUENCE ── */
+function triggerRug(){
+  const ov=document.getElementById('glitch-overlay');
+  ov.style.display='block';
+  setTimeout(()=>{
+    document.getElementById('act1').style.display='none';
+    const a2=document.getElementById('act2');
+    a2.style.display='flex';
+    ov.style.display='none';
+    let pct=100;
+    const msgs=['ACCESSING LIQUIDITY...','BYPASSING MULTISIG...','DRAINING POOLS...','GOODBYE ANON 👋','TRANSFERRING TO BIRTHDAY_CHAIN...'];
+    let mi=0;
+    const mInt=setInterval(()=>{document.getElementById('rug-sub').textContent=msgs[++mi%msgs.length];},450);
+    const drain=setInterval(()=>{
+      pct=Math.max(0,pct-Math.random()*8-2);
+      [['rb1','rp1'],['rb2','rp2'],['rb3','rp3']].forEach(([b,p],i)=>{
+        const v=Math.max(0,pct-i*3);
+        document.getElementById(b).style.width=v+'%';
+        document.getElementById(p).textContent=Math.floor(v)+'%';
+      });
+      if(pct<=0){clearInterval(drain);clearInterval(mInt);setTimeout(showParty,800);}
+    },70);
+  },400);
+}
+
+/* ── PARTY TIME ── */
+function showParty(){
+  document.getElementById('act2').style.display='none';
+  document.getElementById('scanlines').style.opacity='0.1';
+  document.body.style.background='var(--party-bg)';
+  document.getElementById('act3').style.display='block';
+  startRain();
+  for(let i=0;i<8;i++)setTimeout(()=>confettiBurst(),i*300);
+  document.addEventListener('click',onPartyClick);
+}
+
+/* ── RISING BALLOONS ── */
+const EMOJIS=['🎈','🎉','🎊','🎂','🥳','🎀','💃','🕺'];
+function startRain(){
+  const rain=document.getElementById('emoji-rain');
+  rain.style.zIndex = '2'; /* In front of BG, behind cards */
+  function createBalloon(){
+    const el=document.createElement('div');
+    el.className='rain-emoji';
+    el.textContent=EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+    el.style.left=Math.random()*100+'vw';
+    el.style.bottom='-50px';
+    el.style.fontSize=(1.5+Math.random()*2)+'rem';
+    el.style.opacity=Math.random()*0.5 + 0.3;
+    el.style.cursor='pointer';
+    const dur=8+Math.random()*10;
+    const swayDur=2+Math.random()*3;
+    el.style.animation=`rise ${dur}s linear forwards, sway ${swayDur}s ease-in-out infinite`;
+    el.onclick=(e)=>{
+      e.stopPropagation();
+      el.textContent='💥';
+      setTimeout(()=>el.remove(),200);
+    };
+    rain.appendChild(el);
+    setTimeout(()=>el.remove(),dur*1000);
+  }
+  setInterval(createBalloon,600);
+}
+
+/* ── ACHIEVEMENT TRIGGER ── */
+window.addEventListener('scroll', () => {
+  if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+    document.getElementById('achievement-toast').classList.add('show');
+  }
+});
+
+/* ── CONFETTI ENGINE ── */
+const canvas=document.getElementById('confetti-canvas'),cctx=canvas.getContext('2d');
+function setupCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+setupCanvas(); window.addEventListener('resize',setupCanvas);
+const COLORS=['#FFD700','#FF006E','#00FFCC','#BF00FF','#FF6B35','#ffffff'];
+let particles=[],isAnimating=false;
+function confettiBurst(x,y){
+  x=x||canvas.width/2; y=y||canvas.height*0.4;
+  for(let i=0;i<120;i++){
+    const angle=Math.random()*Math.PI*2, speed=Math.random()*15+5;
+    particles.push({
+      x,y, vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed-5,
+      col:COLORS[Math.floor(Math.random()*COLORS.length)],
+      sz:Math.random()*10+5, rot:Math.random()*360, rv:Math.random()*12-6,
+      life:1, decay:Math.random()*0.015+0.01,
+      shape:Math.random()>.5?'rect':'circle'
+    });
+  }
+  if(!isAnimating)animateConfetti();
+}
+function animateConfetti(){
+  isAnimating=true;
+  cctx.clearRect(0,0,canvas.width,canvas.height);
+  particles=particles.filter(p=>p.life>0);
+  particles.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy; p.vy+=0.4; p.vx*=.98; p.rot+=p.rv; p.life-=p.decay;
+    cctx.save(); cctx.globalAlpha=Math.max(0,p.life);
+    cctx.translate(p.x,p.y); cctx.rotate(p.rot*Math.PI/180);
+    cctx.fillStyle=p.col;
+    if(p.shape==='rect')cctx.fillRect(-p.sz/2,-p.sz/4,p.sz,p.sz/2);
+    else{cctx.beginPath();cctx.arc(0,0,p.sz/2,0,Math.PI*2);cctx.fill();}
+    cctx.restore();
+  });
+  if(particles.length>0)requestAnimationFrame(animateConfetti);
+  else isAnimating=false;
+}
+function onPartyClick(e){
+  if(e.target.closest('.share-btn'))return;
+  confettiBurst(e.clientX,e.clientY);
+}
+</script>
+</body>
+</html>
