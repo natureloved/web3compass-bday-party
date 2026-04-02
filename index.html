@@ -232,20 +232,29 @@ body {
   0%, 100% { transform: translateY(0) rotate(-2deg); }
   50% { transform: translateY(-15px) rotate(2deg); }
 }
+.mascot-wrap.party-scale { animation: party-scale 0.5s ease-in-out 2; }
+@keyframes party-scale { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.4); } }
 
-/* ── ACHIEVEMENT BADGE ── */
-#achievement-toast {
-  position: fixed; bottom: -100px; right: 2rem; z-index: 1000;
-  background: linear-gradient(135deg, var(--gold), var(--ora)); padding: 16px 24px;
-  border-radius: 16px; display: flex; align-items: center; gap: 15px;
-  box-shadow: 0 10px 40px rgba(255, 215, 0, 0.4);
-  transition: bottom 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+/* ── MEME CONSOLE (TERMINAL) ── */
+.meme-console {
+  max-width: 600px; margin: 6rem auto 0;
+  background: rgba(0, 0, 0, 0.85); border: 1px solid var(--g);
+  border-radius: 12px; padding: 1.5rem; text-align: left;
+  font-family: 'JetBrains Mono', monospace; box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
+  position: relative; overflow: hidden;
 }
-#achievement-toast.show { bottom: 2rem; }
-.badge-icon { font-size: 2rem; }
-.badge-text { text-align: left; }
-.badge-title { font-family: 'Righteous', cursive; font-size: 0.9rem; color: #000; text-transform: uppercase; }
-.badge-desc { font-family: 'Outfit', sans-serif; font-size: 0.75rem; color: rgba(0,0,0,0.7); font-weight: 700; }
+.console-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 0.7rem; color: var(--g); opacity: 0.7; text-transform: uppercase; }
+.console-dot { width: 8px; height: 8px; background: var(--g); border-radius: 50%; }
+.console-body { color: var(--g); font-size: 0.85rem; height: 180px; overflow-y: auto; margin-bottom: 15px; line-height: 1.4; scroll-behavior: smooth; }
+.console-input-row { display: flex; gap: 10px; align-items: center; }
+.console-prompt { color: var(--mint); font-weight: 700; }
+.console-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: #fff; font-family: inherit; font-size: 0.85rem;
+}
+.console-line { margin-bottom: 4px; }
+.console-line.cmd { color: var(--c); }
+.console-line.out { opacity: 0.8; }
 
 .msg-card, .sol-card {
   background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
@@ -333,13 +342,6 @@ body {
 </head>
 <body>
 
-<div id="achievement-toast">
-  <div class="badge-icon">🏆</div>
-  <div class="badge-text">
-    <div class="badge-title">Legendary Founder unlocked</div>
-    <div class="badge-desc">Anniversary Badge — Web3Compass Year 1</div>
-  </div>
-</div>
 
 <canvas id="matrix-canvas"></canvas>
 <canvas id="confetti-canvas"></canvas>
@@ -469,6 +471,21 @@ body {
     </a>
     <div class="click-hint">✦ click anywhere for fireworks ✦</div>
     <div class="footer">BUILT WITH CLAUDE . BY ADEJOKE . 2026</div>
+
+    <div class="meme-console">
+      <div class="console-header">
+        <div class="console-dot"></div>
+        solidity_terminal_v1.0.4 — local
+      </div>
+      <div class="console-body" id="console-body">
+        <div class="console-line out">Compiling birthday_contracts... Done.</div>
+        <div class="console-line out">Type 'help' to see active commands.</div>
+      </div>
+      <div class="console-input-row">
+        <span class="console-prompt">&gt;</span>
+        <input type="text" id="console-input" class="console-input" placeholder="Type a command..." spellcheck="false" autocomplete="off">
+      </div>
+    </div>
   </div>
 </div>
 
@@ -566,12 +583,57 @@ function startRain(){
   setInterval(createBalloon,600);
 }
 
-/* ── ACHIEVEMENT TRIGGER ── */
-window.addEventListener('scroll', () => {
-  if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
-    document.getElementById('achievement-toast').classList.add('show');
+/* ── MEME CONSOLE ENGINE ── */
+const cIn = document.getElementById('console-input');
+const cBody = document.getElementById('console-body');
+if(cIn){
+  cIn.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){
+      const cmd = cIn.value.toLowerCase().trim();
+      addLog(`> ${cmd}`, 'cmd');
+      execute(cmd);
+      cIn.value = '';
+    }
+  });
+}
+function addLog(txt, type='out'){
+  const line = document.createElement('div');
+  line.className = `console-line ${type}`;
+  line.innerHTML = txt;
+  cBody.appendChild(line);
+  cBody.scrollTop = cBody.scrollHeight;
+}
+function execute(cmd){
+  switch(cmd){
+    case 'help':
+      addLog('Available: <strong>help, wish, cake, airdrop, vibes, clear</strong>');
+      break;
+    case 'wish':
+      addLog('Processing on-chain wish burst...');
+      for(let i=0;i<5;i++) setTimeout(()=>confettiBurst(), i*200);
+      break;
+    case 'cake':
+      addLog('Bouncing cake in localized coordinate space...');
+      const mWrap = document.querySelector('.mascot-wrap');
+      mWrap.classList.add('party-scale');
+      setTimeout(() => mWrap.classList.remove('party-scale'), 1000);
+      break;
+    case 'airdrop':
+      addLog('SCANNING WALLET...');
+      setTimeout(() => addLog('ERROR: 0 $BDAY found. 📉'), 600);
+      setTimeout(() => addLog('SUCCESS: 1 $CAKE detected! 🎂✨'), 1200);
+      break;
+    case 'vibes':
+      addLog('MAXIMIZING PARTY VIBES...');
+      startRain();
+      break;
+    case 'clear':
+      cBody.innerHTML = '';
+      break;
+    default:
+      addLog(`Unknown command: ${cmd}. Type 'help'.`, 'out');
   }
-});
+}
 
 /* ── CONFETTI ENGINE ── */
 const canvas=document.getElementById('confetti-canvas'),cctx=canvas.getContext('2d');
